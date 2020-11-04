@@ -8,7 +8,7 @@ import random
 
 class MyRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        print(self.path)
+        #print(self.path)
         if self.path[-4:] == ".jpg":
             self.send_response(200)
             self.send_header("Content-Type", "image/jpeg")
@@ -21,12 +21,18 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         else:
             with requests.get(self.path, stream=True) as res:
                 self.send_response(res.status_code)
-                print(res.headers)
-                for key, value in res.headers.items():
-                    self.send_header(key, value)
-                self.end_headers()
-            
-                self.wfile.write(res.raw.read())
+                if "text/html" in res.headers['content-type']:
+                    self.send_header("Content-Type", "text/html")
+                    self.end_headers()
+                    content = str(res.content, "utf-8")
+                    content = content.replace("Bilder", "Katzenbilder")
+                    self.wfile.write(content.encode()) 
+                else:
+                    for key, value in res.headers.items():
+                        self.send_header(key, value)
+                    self.end_headers()
+                
+                    self.wfile.write(res.raw.read())
 
 address = ("127.0.0.1", 10080)
 

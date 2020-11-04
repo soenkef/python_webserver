@@ -14,8 +14,16 @@ class MyRequestHandler(BaseHTTPRequestHandler):
     
         if self.headers["content-type"] == "application/x-www-form-urlencoded":
             length = int(self.headers["content-length"])
-            print(urllib.parse.parse_qs(self.rfile.read(length)))
-            print(length)
+            form = str(self.rfile.read(length), "utf-8")
+            data = urllib.parse.parse_qs(form)
+
+            with requests.post(self.path, data = data, stream = True) as res:
+                self.send_response(res.status_code)
+                for key, value in res.headers.items():
+                    self.send_header(key, value)
+                self.end_headers()
+
+                self.wfile.write(res.raw.read())
     
     def do_GET(self):
         #print(self.path)
